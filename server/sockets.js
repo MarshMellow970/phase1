@@ -2,6 +2,9 @@ module.exports = {
     
     connect: function(io, PORT){
         var rooms = ["room1", "room2", "room3", "admin"];
+        var Channels = [{'Channel' : 'channel1', 'group' : 'group1' },
+                        {'Channel' : 'channel2', 'group' : 'group1' },
+                        {'Channel' : 'channel3', 'group' : 'group1' },]; 
         var users = [{'user' : 'human', 'pword' : 'food', 'powers' : '2'}, 
                      {'user' : 'dog', 'pword' : 'cat', 'powers' : '1'}, 
                      {'user' : 'fish', 'pword' : 'water', 'powers' : '1'}, 
@@ -26,7 +29,6 @@ module.exports = {
 
 
             socket.on('message', (message)=>{
-
                 for (i = 0; i<socketRoom.length; i++){
                     if(socketRoom[i][0] == socket.id){
                         io.to(socketRoom[i][1]).emit('message', message);
