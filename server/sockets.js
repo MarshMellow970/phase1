@@ -1,21 +1,27 @@
+const { group } = require('console');
+
 module.exports = {
     
     connect: function(io, PORT){
-        var rooms = ["room1", "room2", "room3", "admin"];
+        var roomin = require('./rooms.json');
+        var rooms = roomin;
         var Channels = [{'Channel' : 'channel1', 'group' : 'group1' },
                         {'Channel' : 'channel2', 'group' : 'group1' },
                         {'Channel' : 'channel3', 'group' : 'group1' },]; 
-        var users = [{'user' : 'human', 'pword' : 'food', 'powers' : '2'}, 
-                     {'user' : 'dog', 'pword' : 'cat', 'powers' : '1'}, 
-                     {'user' : 'fish', 'pword' : 'water', 'powers' : '1'}, 
-                     {'user' : 'admin', 'pword' : 'admin', 'powers' : '3'}];
+        var test = require('./users.json');
+        var users = test;
+
+        // array for holding all messages and saves to json file 
+        var chatHistory = require('./chatHistory.json');
+        var thisChatHistory = chatHistory;
+
         var socketRoom = []; // list holders (socket.id (person), joined room)
         var socketRoomnum = []; 
+        var fs = require('fs');
 
         io.on('connection', (socket)=>{
             console.log('user connection on port' + 'PORT ' + socket.id);
-            var chathis = require('./chatHistory.json');
-
+            
 
             socket.on('logindetails', (message) => {
                 for(let i = 0; i <users.length; i++){
@@ -27,10 +33,28 @@ module.exports = {
                 }
             });
 
+            socket.on('history', (m)=>{
+                let chathis = [];
+                let room = "";
+                for (let i = 0; i<socketRoom.length; i++){
+                    if(socketRoom[i][0] == socket.id){
+                        room = socketRoom[i][1];
+                    }
+                }
+                for (let j = 0; j < chatHistory.length; j++){
+                    if(chatHistory[j].room == room){
+                        chathis.push(chatHistory[j].message);
+                    }
+                }
+                io.emit('history', chathis); 
+            });
+
 
             socket.on('message', (message)=>{
                 for (i = 0; i<socketRoom.length; i++){
                     if(socketRoom[i][0] == socket.id){
+                        thisChatHistory.push({'message' : message, 'room' :socketRoom[i][1]}); 
+                        fs.writeFile('chatHistory.json', JSON.stringify(thisChatHistory), 'utf8', callback=>{console.log("message added")}); 
                         io.to(socketRoom[i][1]).emit('message', message);
                     }
                 }
@@ -42,6 +66,17 @@ module.exports = {
             socket.on('roomlist',(m)=>{
                 io.emit('roomlist', JSON.stringify(rooms));
             });
+
+            socket.on('channellist', (m)=>{
+                var channels = [];
+                for(let i = 0; i<Channels.length; i++){
+                    if(Channels[i].group == m){
+                        JSON.stringify(channels.push(Channels[i].Channel));
+                    }
+                }
+                io.emit('channellist', channels)
+            });
+
             // joining a room, checking if the room is real, joining it and then adding count
             socket.on("joinRoom", (room)=>{
                 if(rooms.includes(room)){
@@ -71,6 +106,7 @@ module.exports = {
                     return io.in(room).emit("joined", room);
                 }
             });
+            
             //leaving room doing the same as above. 
             socket.on("leaveRoom", (room)=>{
                 for(let i = 0; i<socketRoom.length; i++){
@@ -98,7 +134,9 @@ module.exports = {
                 }
                 catch{
                     socket.emit('Success', "Fail");
+                    return; 
                 }
+                fs.writeFile('users.json', JSON.stringify(users), 'utf8', callback=>{console.log("user added")}); 
                 console.log(users);
             });
 
@@ -132,6 +170,16 @@ module.exports = {
 
 
             //----------------------Group Admin -----------------------------
+            socket.on("SpawnGroup", (name)=>{
+                try{
+                    rooms.push(name);
+                    fs.writeFile('rooms.json', JSON.stringify(rooms), 'utf8', callback=>{console.log("room added")});
+                }
+                catch{
+                    console.log("bad");
+                }
+            });
+
             
 
         });
