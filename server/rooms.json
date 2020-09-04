@@ -1,1 +1,1 @@
-["room1","room2","room3","room4"]
+[{"name":"room1","users":["admin","human"]},{"name":"room2","users":["admin","human"]},{"name":"room3","users":["admin","human"]},{"name":"kids","users":["admin"]},{"name":"kids","users":[]}]

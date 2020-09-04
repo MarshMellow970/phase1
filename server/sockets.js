@@ -64,7 +64,13 @@ module.exports = {
 
             //giving a user a list of all rooms used
             socket.on('roomlist',(m)=>{
-                io.emit('roomlist', JSON.stringify(rooms));
+                var packet = []; 
+                for(let i = 0; i<rooms.length; i++){
+                    if(rooms[i].users.includes(m)){
+                        packet.push(rooms[i].name);
+                    }
+                }
+                io.emit('roomlist', JSON.stringify(packet));
             });
 
             socket.on('channellist', (m)=>{
@@ -79,7 +85,13 @@ module.exports = {
 
             // joining a room, checking if the room is real, joining it and then adding count
             socket.on("joinRoom", (room)=>{
-                if(rooms.includes(room)){
+                var isin = false;
+                for(let i = 0; i<rooms.length; i++){
+                    if(rooms[i].name == room){
+                        isin = true;
+                    }
+                }
+                if(isin){
                     socket.join(room,()=>{
                         var inroomSocketarray = false;
 
@@ -172,7 +184,8 @@ module.exports = {
             //----------------------Group Admin -----------------------------
             socket.on("SpawnGroup", (name)=>{
                 try{
-                    rooms.push(name);
+                    let test = {"name" : name, "users" : ["admin"]};
+                    rooms.push(test);
                     fs.writeFile('rooms.json', JSON.stringify(rooms), 'utf8', callback=>{console.log("room added")});
                 }
                 catch{
@@ -180,6 +193,51 @@ module.exports = {
                 }
             });
 
+            socket.on("UserRoomLink", (packet) =>{
+                try{
+                    var lock; 
+                    for(let i = 0; i<rooms.length; i++){
+                        if(rooms[i].name == packet[0]){
+                            lock = i;
+                        }
+                    }
+                    // check if user is already in 
+                    if(rooms[lock].users.includes(packet[1])){
+                        console.log("room add error user already in room");
+                        return; 
+                        
+                    }
+                    rooms[lock].users.push(packet[1]); 
+                    fs.writeFile('rooms.json', JSON.stringify(rooms), callback=>{console.log("userlink made")});
+                }
+                catch{
+                    console.log("bad");
+                }
+            });
+
+            socket.on("removeUserRoomLink", (packet) =>{
+                console.log("user removal");
+                try{
+                    var lock; 
+                    for(let i = 0; i<rooms.length; i++){
+                        if(rooms[i].name == packet[0]){
+                            lock = i;
+                        }
+                    }
+                    
+                    for(let j = 0; j< rooms[lock].users.length; j++){
+                        console.log(rooms[lock].users[j]);
+                        if(rooms[lock].users[j] == packet[1]){
+                            rooms[lock].users.splice(j,1);
+                        }
+                    }
+                    
+                    fs.writeFile('rooms.json', JSON.stringify(rooms), callback=>{console.log(rooms)});
+                }
+                catch{
+                    console.log("bad");
+                }
+            });
             
 
         });
