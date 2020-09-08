@@ -3,11 +3,15 @@ const { group } = require('console');
 module.exports = {
     
     connect: function(io, PORT){
+        var groupin = require('./groups.json');
+        var groups = groupin;
+
         var roomin = require('./rooms.json');
         var rooms = roomin;
-        var Channels = [{'Channel' : 'channel1', 'group' : 'group1' },
-                        {'Channel' : 'channel2', 'group' : 'group1' },
-                        {'Channel' : 'channel3', 'group' : 'group1' },]; 
+
+        var groups = require('./groups.json');
+        var grouplist = groups;
+
         var test = require('./users.json');
         var users = test;
 
@@ -62,14 +66,18 @@ module.exports = {
             });
 
 
-            //giving a user a list of all rooms used
+            //giving a user a list of all rooms used checks if the room has the correct user listing in it
+            //additonally added groups which limits again what users have access to what groups 
             socket.on('roomlist',(m)=>{
                 var packet = []; 
+                //create room list based on group
+                var grouprooms = groups.channels;
                 for(let i = 0; i<rooms.length; i++){
                     if(rooms[i].users.includes(m)){
                         packet.push(rooms[i].name);
                     }
                 }
+                
                 io.emit('roomlist', JSON.stringify(packet));
             });
 
@@ -187,6 +195,7 @@ module.exports = {
                     let test = {"name" : name, "users" : ["admin"]};
                     rooms.push(test);
                     fs.writeFile('rooms.json', JSON.stringify(rooms), 'utf8', callback=>{console.log("room added")});
+                    
                 }
                 catch{
                     console.log("bad");

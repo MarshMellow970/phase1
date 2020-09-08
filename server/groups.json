@@ -1,4 +1,10 @@
 [{
     "name" : "group1",
-    "channels" : ["room1", "room2"]
+    "channels" : ["room1", "room2"],
+    "users" : ["admin"]
+},
+{
+    "name" : "group2",
+    "channels" : ["kids", "room3"],
+    "users" : ["admin", "fish","dog","test"]
 }]
