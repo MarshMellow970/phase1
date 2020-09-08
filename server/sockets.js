@@ -70,24 +70,33 @@ module.exports = {
             //additonally added groups which limits again what users have access to what groups 
             socket.on('roomlist',(m)=>{
                 var packet = []; 
+                var grouprooms = [];
                 //create room list based on group
-                var grouprooms = groups.channels;
-                for(let i = 0; i<rooms.length; i++){
-                    if(rooms[i].users.includes(m)){
-                        packet.push(rooms[i].name);
+                for(j = 0; j<grouplist.length; j++){
+                    if(grouplist[j].name == m[0]){
+                        grouprooms = grouplist[j].channels;
                     }
                 }
-                
+                // reduce rooms down into groups
+                for(let i = 0; i<rooms.length; i++){
+                    if(grouprooms.includes(rooms[i].name)){
+                        if(rooms[i].users.includes(m[1])){
+                            packet.push(rooms[i].name);
+                        }
+                    }
+                }
                 io.emit('roomlist', JSON.stringify(packet));
             });
 
             socket.on('channellist', (m)=>{
                 var channels = [];
-                for(let i = 0; i<Channels.length; i++){
-                    if(Channels[i].group == m){
-                        JSON.stringify(channels.push(Channels[i].Channel));
+                for(let i = 0; i<grouplist.length; i++){
+                    if(grouplist[i].users.includes(m)){
+                        channels.push(grouplist[i].name);
                     }
+                    //channels.push(grouplist[i].name);
                 }
+                
                 io.emit('channellist', channels)
             });
 
@@ -242,6 +251,64 @@ module.exports = {
                     }
                     
                     fs.writeFile('rooms.json', JSON.stringify(rooms), callback=>{console.log(rooms)});
+                }
+                catch{
+                    console.log("bad");
+                }
+            });
+            //creates a group  
+            socket.on("Spawnchannel", (name)=>{
+                try{
+                    let test = {"name" : name, "channels" : [], "users" : ["admin"]};
+                    rooms.push(test);
+                    fs.writeFile('rooms.json', JSON.stringify(rooms), 'utf8', callback=>{console.log("room added")});
+                    
+                }
+                catch{
+                    console.log("bad");
+                }
+            });
+            // functions for premissions for group access 
+            socket.on("UserGroupLink", (packet) =>{
+                try{
+                    var lock; 
+                    for(let i = 0; i<rooms.length; i++){
+                        if(grouplist[i].name == packet[0]){
+                            lock = i;
+                        }
+                    }
+                    // check if user is already in 
+                    if(grouplist[lock].users.includes(packet[1])){
+                        console.log("room add error user already in room");
+                        return; 
+                        
+                    }
+                    grouplist[lock].users.push(packet[1]); 
+                    fs.writeFile('groups.json', JSON.stringify(rooms), callback=>{console.log("userlink made")});
+                }
+                catch{
+                    console.log("bad");
+                }
+            });
+
+            socket.on("removeUserGroupLink", (packet) =>{
+                console.log("user removal");
+                try{
+                    var lock; 
+                    for(let i = 0; i<grouplist.length; i++){
+                        if(grouplist[i].name == packet[0]){
+                            lock = i;
+                        }
+                    }
+                    
+                    for(let j = 0; j< grouplist[lock].users.length; j++){
+                        console.log(grouplist[lock].users[j]);
+                        if(grouplist[lock].users[j] == packet[1]){
+                            grouplist[lock].users.splice(j,1);
+                        }
+                    }
+                    
+                    fs.writeFile('groups.json', JSON.stringify(rooms), callback=>{console.log(rooms)});
                 }
                 catch{
                     console.log("bad");
