@@ -1,1 +1,1 @@
-[{"name":"room1","users":["admin","human"]},{"name":"room2","users":["admin","human"]},{"name":"room3","users":["admin","human"]},{"name":"kids","users":["admin"]}]
+[{"name":"room1","users":["admin","human"]},{"name":"room2","users":["admin","human"]},{"name":"room3","users":["admin","human"]},{"name":"kids","users":["admin","dog"]}]

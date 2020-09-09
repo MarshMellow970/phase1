@@ -96,7 +96,6 @@ module.exports = {
                     }
                     //channels.push(grouplist[i].name);
                 }
-                
                 io.emit('channellist', channels)
             });
 
