@@ -1,10 +1,1 @@
-[{
-    "name" : "group1",
-    "channels" : ["room1", "room2"],
-    "users" : ["admin"]
-},
-{
-    "name" : "group2",
-    "channels" : ["kids", "room3"],
-    "users" : ["admin", "fish","dog","test"]
-}]
+[{"_id":"5f73cba758d0743724fa76be","name":"group1","channels":["room1","room2"],"users":["admin"]},{"_id":"5f73cba758d0743724fa76bf","name":"group2","channels":["kids","room3"],"users":["admin","fish","dog","test"]}]

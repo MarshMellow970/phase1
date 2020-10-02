@@ -16,7 +16,7 @@ app.use(cors());
 sockets.connect(io, PORT);
 
 server.listen(http, PORT);
-
+// load mongo into jsons 
 
 app.get('/build',function(req,res){
     builder.build();

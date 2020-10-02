@@ -1,3 +1,4 @@
+var fs = require('fs');
 module.exports = {
     find:function(){
         const MongoClient = require('mongodb').MongoClient;
@@ -15,8 +16,7 @@ module.exports = {
             var collection = db.collection(colName);
             collection.find({}).toArray(function(err, doc){
                 console.log(doc);
-                fs.writeFile('./chatHistory.json', JSON.stringify(doc), 'utf8', callback=>{console.log("message added")});
-                roomsfetch()
+                fs.writeFile('./chatHistory.json', JSON.stringify(doc), 'utf8', callback=>{roomsfetch()});
             });
             
         });
@@ -26,13 +26,13 @@ module.exports = {
             colName = 'rooms';
             client.connect(function(err){
                 console.log("connection successful to server");
-                console.log("chathis getting")
+                console.log("rooms getting")
                 const db = client.db(dbName);
                 collection = db.collection(colName);
                 collection.find({}).toArray(function(err, doc){
                     console.log(doc);
-                    fs.writeFile('./rooms.json', JSON.stringify(doc), 'utf8', callback=>{console.log("message added")});
-                    groupsfetch();
+                    fs.writeFile('./rooms.json', JSON.stringify(doc), 'utf8', callback=>{groupsfetch();});
+                    
                 });
                 
             });
@@ -43,13 +43,13 @@ module.exports = {
             var doc; 
             client.connect(function(err){
                 console.log("connection successful to server");
-                console.log("chathis getting")
+                console.log("groups getting")
                 const db = client.db(dbName);
                 collection = db.collection(colName);
                 collection.find({}).toArray(function(err, doc){
                     console.log(doc);
-                    fs.writeFile('./groups.json', JSON.stringify(doc), 'utf8', callback=>{console.log("message added")});
-                    usersfetch();
+                    fs.writeFile('./groups.json', JSON.stringify(doc), 'utf8', callback=>{usersfetch()});
+                    
                 });
             });
         }
@@ -59,7 +59,7 @@ module.exports = {
             var doc; 
             client.connect(function(err){
                 console.log("connection successful to server");
-                console.log("chathis getting")
+                console.log("users getting")
                 const db = client.db(dbName);
                 collection = db.collection(colName);
                 collection.find({}).toArray(function(err, doc){

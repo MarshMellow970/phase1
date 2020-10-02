@@ -1,4 +1,5 @@
 const { group } = require('console');
+const updater = require('./mongodb/insertdata.js'); 
 
 module.exports = {
     
@@ -31,6 +32,7 @@ module.exports = {
                 for(let i = 0; i <users.length; i++){
                     if(message[0] == users[i].user && message[1] == users[i].pword){
                         io.emit("logindetails", users[i].powers);
+                        console.log(users[i].powers); 
                     }else{
                         io.emit("logindetails", 0);
                     }
@@ -57,9 +59,16 @@ module.exports = {
             socket.on('message', (message)=>{
                 for (i = 0; i<socketRoom.length; i++){
                     if(socketRoom[i][0] == socket.id){
-                        thisChatHistory.push({'message' : message, 'room' :socketRoom[i][1]}); 
-                        fs.writeFile('chatHistory.json', JSON.stringify(thisChatHistory), 'utf8', callback=>{console.log("message added")}); 
+                        console.log("before");
+                        console.log(thisChatHistory); 
+                        var doc = {'message' : message, 'room' :socketRoom[i][1]};
+                        updater.insertfunc("chathistory", doc, function(){
+                            thisChatHistory.push(doc); 
+                            fs.writeFile('chatHistory.json', JSON.stringify(thisChatHistory), 'utf8', callback=>{console.log("message added")}); 
+                            
+                        });
                         io.to(socketRoom[i][1]).emit('message', message);
+
                     }
                 }
                 
@@ -157,6 +166,7 @@ module.exports = {
 
             //----------------------Super Admin -----------------------------
             socket.on("UserMKR", (packet)=>{
+                var doc = {'user' : packet[0], 'pword' : packet[1], 'powers' : packet[2]};
                 try{
                     users.push({'user' : packet[0], 'pword' : packet[1], 'powers' : packet[2]});
                 }
@@ -164,8 +174,11 @@ module.exports = {
                     socket.emit('Success', "Fail");
                     return; 
                 }
-                fs.writeFile('users.json', JSON.stringify(users), 'utf8', callback=>{console.log("user added")}); 
-                console.log(users);
+
+                updater.insertfunc('chathistory', doc, function(){
+                    fs.writeFile('users.json', JSON.stringify(users), 'utf8', callback=>{console.log("user added")}); 
+                    console.log(users);
+                });
             });
 
             socket.on("UserSUPERSet", (username)=>{
@@ -200,10 +213,13 @@ module.exports = {
             //----------------------Group Admin -----------------------------
             socket.on("SpawnGroup", (name)=>{
                 try{
-                    let test = {"name" : name, "users" : ["admin"]};
-                    rooms.push(test);
-                    fs.writeFile('rooms.json', JSON.stringify(rooms), 'utf8', callback=>{console.log("room added")});
                     
+                    let test = {"name" : name, "users" : ["admin"]};
+                    updater.insertfunc('chathistory', doc, function(){
+                        rooms.push(test);
+                    
+                        fs.writeFile('rooms.json', JSON.stringify(rooms), 'utf8', callback=>{console.log("room added")});
+                    }); 
                 }
                 catch{
                     console.log("bad");

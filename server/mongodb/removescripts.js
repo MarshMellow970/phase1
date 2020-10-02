@@ -7,7 +7,7 @@ module.exports = {
 
         // build chathistory
         var colName = 'chathistory';
-        var chatHistory = require('./chatHistory.json');
+        var chatHistory = require('../chatHistory.json');
         var thisChatHistory = chatHistory;
         client.connect(function(err){
             console.log("connection successful to server");
@@ -22,7 +22,7 @@ module.exports = {
         // build groups
         var groupsdel = function(){
             colName = 'groups';
-            var groups = require('./groups.json');
+            var groups = require('../groups.json');
             var grouplist = groups;
             client.connect(function(err){
                 console.log("connection successful to server");
@@ -38,7 +38,7 @@ module.exports = {
         // build rooms
         var coldel = function(){
             colName = 'rooms';
-            var roomin = require('./rooms.json');
+            var roomin = require('../rooms.json');
             var rooms = roomin;
             client.connect(function(err){
                 console.log("connection successful to server");
@@ -54,7 +54,7 @@ module.exports = {
         // build users 
         var usersdel = function(){
             colName = 'users';
-            var test = require('./users.json');
+            var test = require('../users.json');
             var users = test;
             client.connect(function(err){
                 console.log("connection successful to server");
