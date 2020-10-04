@@ -1,5 +1,6 @@
 const { group } = require('console');
 const updater = require('./mongodb/insertdata.js'); 
+const fetcher = require('./mongodb/findscript.js');
 
 module.exports = {
     
@@ -29,6 +30,12 @@ module.exports = {
             
             //update to mongo only -----------------------------------
             socket.on('logindetails', (message) => {
+                //mongodb
+                var queryJSON = { user: message[0], pword: message[1]};
+                fetcher.findDocuments("users", queryJSON, function(err, result){
+                    console.log(result);
+                });
+                //json file
                 for(let i = 0; i <users.length; i++){
                     if(message[0] == users[i].user && message[1] == users[i].pword){
                         io.emit("logindetails", users[i].powers);
