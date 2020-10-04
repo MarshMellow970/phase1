@@ -27,7 +27,7 @@ module.exports = {
         io.on('connection', (socket)=>{
             console.log('user connection on port' + 'PORT ' + socket.id);
             
-
+            //update to mongo only -----------------------------------
             socket.on('logindetails', (message) => {
                 for(let i = 0; i <users.length; i++){
                     if(message[0] == users[i].user && message[1] == users[i].pword){
@@ -39,6 +39,7 @@ module.exports = {
                 }
             });
 
+            //update to mongo only -----------------------------------
             socket.on('history', (m)=>{
                 let chathis = [];
                 let room = "";
@@ -55,7 +56,7 @@ module.exports = {
                 io.emit('history', chathis); 
             });
 
-
+            //update to mongo only -----------------------------------
             socket.on('message', (message)=>{
                 for (i = 0; i<socketRoom.length; i++){
                     if(socketRoom[i][0] == socket.id){
@@ -77,6 +78,8 @@ module.exports = {
 
             //giving a user a list of all rooms used checks if the room has the correct user listing in it
             //additonally added groups which limits again what users have access to what groups 
+
+            //update to mongo only -----------------------------------
             socket.on('roomlist',(m)=>{
                 var packet = []; 
                 var grouprooms = [];
@@ -96,7 +99,7 @@ module.exports = {
                 }
                 io.emit('roomlist', JSON.stringify(packet));
             });
-
+            //update to mongo only -----------------------------------
             socket.on('channellist', (m)=>{
                 var channels = [];
                 for(let i = 0; i<grouplist.length; i++){
@@ -165,6 +168,7 @@ module.exports = {
 
 
             //----------------------Super Admin -----------------------------
+            //update to mongo only -----------------------------------
             socket.on("UserMKR", (packet)=>{
                 var doc = {'user' : packet[0], 'pword' : packet[1], 'powers' : packet[2]};
                 try{
