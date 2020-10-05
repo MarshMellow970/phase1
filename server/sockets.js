@@ -243,143 +243,153 @@ module.exports = {
             });
 
             socket.on("UserAdminSet", (username)=>{
-                for(let i =0; i<users.length; i++){
-                    if(users[i].user == username){
-                        users[i].powers = "2";
-                    }
-                }
-                console.log(users);
+                var queryJSON = { "user": username};
+                var updateJSON = {"powers": 2};
+                client.connect(function(err){
+                    const db = client.db(dbName);
+                    var collection = db.collection("users");
+                    collection.find(queryJSON, {$set: updateJSON}, function(err, result){
+                        socket.emit("UserSUPERSet", "compeleted")
+                    });
+                });
             });
 
             //deleting a user
             socket.on("UserDLT", (username)=>{
-                for(let i =0; i<users.length; i++){
-                    if(users[i].user == username){
-                        users.splice(i,1);
-                    }
-                }
-                console.log(users);
+                var deltJSON = { "user": username};
+                client.connect(function(err){
+                    const db = client.db(dbName);
+                    var collection = db.collection("users");
+                    collection.deleteOne(deltJSON, function(err, result){
+                        socket.emit("UserDLT", "compeleted")
+                    });
+                });
             });
 
 
             //----------------------Group Admin -----------------------------
             socket.on("SpawnGroup", (name)=>{
-                try{
-                    
-                    let test = {"name" : name, "users" : ["admin"]};
-                    updater.insertfunc('chathistory', doc, function(){
-                        rooms.push(test);
-                    
-                        fs.writeFile('rooms.json', JSON.stringify(rooms), 'utf8', callback=>{console.log("room added")});
-                    }); 
-                }
-                catch{
-                    console.log("bad");
-                }
+                let doc = {"name" : name, "users" : ["admin"]};
+                let queryJSON = {"name": name};
+                const db = client.db(dbName);
+                //checks for user name
+                client.connect(function(err){
+                    var collection = db.collection("groups");
+                    collection.findOne(queryJSON).toArray(function(err, result){
+                        if(result.length == 0){
+                            collection.insertOne(doc, function(err, result){
+                                socket.emit('SpawnGroup', "added group");
+                            });
+                        }else{
+                            socket.emit('SpawnGroup', "failed");
+                        }
+                    });
+                });
             });
 
             socket.on("UserRoomLink", (packet) =>{
-                try{
-                    var lock; 
-                    for(let i = 0; i<rooms.length; i++){
-                        if(rooms[i].name == packet[0]){
-                            lock = i;
+                let queryJSON = {"name": packet[0]};
+                
+                const db = client.db(dbName);
+                //checks for user name
+                client.connect(function(err){
+                    var collection = db.collection("rooms");
+                    collection.findOne(queryJSON).toArray(function(err, result){
+                        if(result.length == 0){
+                            socket.emit("userRoomLink", 'failed');
+                        }else{
+                            //add user too room 
+                            let update = result[0].users;
+                            update.push[packet[1]];
+                            let updateJSON = {users: update};
+                            collection.updateOne(queryJSON, {$set:updateJSON}, function(err, result){
+                                socket.emit("userRoomLink", 'success'); 
+                            }) 
                         }
-                    }
-                    // check if user is already in 
-                    if(rooms[lock].users.includes(packet[1])){
-                        console.log("room add error user already in room");
-                        return; 
-                        
-                    }
-                    rooms[lock].users.push(packet[1]); 
-                    fs.writeFile('rooms.json', JSON.stringify(rooms), callback=>{console.log("userlink made")});
-                }
-                catch{
-                    console.log("bad");
-                }
+                    });
+                });
             });
 
             socket.on("removeUserRoomLink", (packet) =>{
-                console.log("user removal");
-                try{
-                    var lock; 
-                    for(let i = 0; i<rooms.length; i++){
-                        if(rooms[i].name == packet[0]){
-                            lock = i;
+                let queryJSON = {"name": packet[0], users:{$in:[packet[1]]} };
+                const db = client.db(dbName);
+                //checks for user name
+                client.connect(function(err){
+                    var collection = db.collection("rooms");
+                    collection.findOne(queryJSON).toArray(function(err, result){
+                        if(result.length == 0){
+                            socket.emit("userRoomLink", 'failed');
+                        }else{
+                            //add user too room 
+                            collection.deleteOne(queryJSON, function(err, result){
+                                socket.emit("userRoomLink", 'success'); 
+                            }) 
                         }
-                    }
-                    
-                    for(let j = 0; j< rooms[lock].users.length; j++){
-                        console.log(rooms[lock].users[j]);
-                        if(rooms[lock].users[j] == packet[1]){
-                            rooms[lock].users.splice(j,1);
-                        }
-                    }
-                    
-                    fs.writeFile('rooms.json', JSON.stringify(rooms), callback=>{console.log(rooms)});
-                }
-                catch{
-                    console.log("bad");
-                }
+                    });
+                });
             });
+
             //creates a group  
             socket.on("Spawnchannel", (name)=>{
-                try{
-                    let test = {"name" : name, "channels" : [], "users" : ["admin"]};
-                    rooms.push(test);
-                    fs.writeFile('rooms.json', JSON.stringify(rooms), 'utf8', callback=>{console.log("room added")});
-                    
-                }
-                catch{
-                    console.log("bad");
-                }
+                let doc = {"name" : name, "channels" : [], "users" : ["admin"]};
+                let queryJSON = {"name": name};
+                const db = client.db(dbName);
+                //checks for user name
+                client.connect(function(err){
+                    var collection = db.collection("rooms");
+                    collection.findOne(queryJSON).toArray(function(err, result){
+                        if(result.length == 0){
+                            collection.insertOne(doc, function(err, result){
+                                socket.emit('Spawnchannel', "added channel");
+                            });
+                        }else{
+                            socket.emit('Spawnchannel', "failed");
+                        }
+                    });
+                });
             });
+
             // functions for premissions for group access 
             socket.on("UserGroupLink", (packet) =>{
-                try{
-                    var lock; 
-                    for(let i = 0; i<rooms.length; i++){
-                        if(grouplist[i].name == packet[0]){
-                            lock = i;
+                let queryJSON = {"name": packet[0]};
+                
+                const db = client.db(dbName);
+                //checks for user name
+                client.connect(function(err){
+                    var collection = db.collection("groups");
+                    collection.findOne(queryJSON).toArray(function(err, result){
+                        if(result.length == 0){
+                            socket.emit("userRoomLink", 'failed');
+                        }else{
+                            //add user too room 
+                            let update = result[0].users;
+                            update.push[packet[1]];
+                            let updateJSON = {users: update};
+                            collection.updateOne(queryJSON, {$set:updateJSON}, function(err, result){
+                                socket.emit("userRoomLink", 'success'); 
+                            }) 
                         }
-                    }
-                    // check if user is already in 
-                    if(grouplist[lock].users.includes(packet[1])){
-                        console.log("room add error user already in room");
-                        return; 
-                        
-                    }
-                    grouplist[lock].users.push(packet[1]); 
-                    fs.writeFile('groups.json', JSON.stringify(rooms), callback=>{console.log("userlink made")});
-                }
-                catch{
-                    console.log("bad");
-                }
+                    });
+                });
             });
 
             socket.on("removeUserGroupLink", (packet) =>{
-                console.log("user removal");
-                try{
-                    var lock; 
-                    for(let i = 0; i<grouplist.length; i++){
-                        if(grouplist[i].name == packet[0]){
-                            lock = i;
+                let queryJSON = {"name": packet[0], users:{$in:[packet[1]]} };
+                const db = client.db(dbName);
+                //checks for user name
+                client.connect(function(err){
+                    var collection = db.collection("groups");
+                    collection.findOne(queryJSON).toArray(function(err, result){
+                        if(result.length == 0){
+                            socket.emit("userRoomLink", 'failed');
+                        }else{
+                            //add user too room 
+                            collection.deleteOne(queryJSON, function(err, result){
+                                socket.emit("userRoomLink", 'success'); 
+                            }) 
                         }
-                    }
-                    
-                    for(let j = 0; j< grouplist[lock].users.length; j++){
-                        console.log(grouplist[lock].users[j]);
-                        if(grouplist[lock].users[j] == packet[1]){
-                            grouplist[lock].users.splice(j,1);
-                        }
-                    }
-                    
-                    fs.writeFile('groups.json', JSON.stringify(rooms), callback=>{console.log(rooms)});
-                }
-                catch{
-                    console.log("bad");
-                }
+                    });
+                });
             });
             
 
