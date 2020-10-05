@@ -5,6 +5,12 @@ const fetcher = require('./mongodb/findscript.js');
 module.exports = {
     
     connect: function(io, PORT){
+
+        const MongoClient = require('mongodb').MongoClient;
+            const url = 'mongodb://localhost:27017';
+            const client = new MongoClient(url);
+            const dbName = 'Phase2';
+
         var groupin = require('./groups.json');
         var groups = groupin;
 
@@ -24,26 +30,28 @@ module.exports = {
         var socketRoom = []; // list holders (socket.id (person), joined room)
         var socketRoomnum = []; 
         var fs = require('fs');
-
+       
         io.on('connection', (socket)=>{
             console.log('user connection on port' + 'PORT ' + socket.id);
             
             //update to mongo only -----------------------------------
             socket.on('logindetails', (message) => {
                 //mongodb
-                var queryJSON = { user: message[0], pword: message[1]};
-                fetcher.findDocuments("users", queryJSON, function(err, result){
-                    console.log(result);
+                var queryJSON = { "user": message[0], "pword": message[1]};
+                client.connect(function(err){
+                    console.log("connection successful to server");
+                    console.log("search", queryJSON)
+                    const db = client.db(dbName);
+                    var collection = db.collection("users");
+                    collection.find(queryJSON).toArray(function(err, result){
+                        console.log("collection", result);
+                        if(result.length > 0){
+                            io.emit("logindetails", result[0].powers);
+                        }else{
+                            io.emit("logindetails", 0);
+                        }
+                    });
                 });
-                //json file
-                for(let i = 0; i <users.length; i++){
-                    if(message[0] == users[i].user && message[1] == users[i].pword){
-                        io.emit("logindetails", users[i].powers);
-                        console.log(users[i].powers); 
-                    }else{
-                        io.emit("logindetails", 0);
-                    }
-                }
             });
 
             //update to mongo only -----------------------------------
@@ -108,6 +116,21 @@ module.exports = {
             });
             //update to mongo only -----------------------------------
             socket.on('channellist', (m)=>{
+
+                // mongodb 
+                var queryJSON = {users :{$in: [m]}};
+                const db = client.db(dbName);
+                client.connect(function(err){
+                    console.log("connection successful to server");
+                    console.log("search", queryJSON)
+                    var collection = db.collection("groups");
+                    collection.find(queryJSON).toArray(function(err, result){
+                        console.log("collection", result);
+                        if(result.length > 0){
+                            //io.emit("channellist", result[0].powers);
+                        }
+                    });
+                });
                 var channels = [];
                 for(let i = 0; i<grouplist.length; i++){
                     if(grouplist[i].users.includes(m)){

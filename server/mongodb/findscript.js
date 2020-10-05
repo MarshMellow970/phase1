@@ -1,5 +1,5 @@
 module.exports = {
-    findDocuments = function(collectionw, queryJSON, callback){
+    findDocuments : function(collectionw, queryJSON){
         const MongoClient = require('mongodb').MongoClient;
             const url = 'mongodb://localhost:27017';
             const client = new MongoClient(url);
@@ -10,10 +10,10 @@ module.exports = {
                 console.log("search", queryJSON)
                 const db = client.db(dbName);
                 var collection = db.collection(collectionw);
-                collection.find(queryJSON, function(err, result){
-                    console.log(result);
-                    callback();
-                })
+                collection.find(queryJSON).toArray(function(err, result){
+                    //console.log(result);
+                    return result; 
+                });
             });
     }
 }
