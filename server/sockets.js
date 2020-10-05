@@ -93,41 +93,21 @@ module.exports = {
 
             //update to mongo only -----------------------------------
             socket.on('roomlist',(m)=>{
-                var packet = []; 
-                var grouprooms = [];
-                var queryJSON = {users :{$in: [m]}};
-                const db = client.db(dbName);
+                var queryJSON = {name: m[0], users :{$in: [m[1]]}};
+                
                 client.connect(function(err){
+                    const db = client.db(dbName);
                     console.log("connection successful to server");
                     console.log("search", queryJSON)
                     var collection = db.collection("groups");
                     collection.find(queryJSON).toArray(function(err, result){
-                        var channels = [];
-                        for(var i = 0; i < result.length; i++){
-                            channels.push(result[i].name);
-                        }
-
-
+                        
                         if(result.length > 0){
-                            io.emit("channellist", channels);
+                            console.log(result[0].channels);
+                            io.emit('roomlist', JSON.stringify(result[0].channels));
                         }
                     });
                 });
-                //create room list based on group
-                for(j = 0; j<grouplist.length; j++){
-                    if(grouplist[j].name == m[0]){
-                        grouprooms = grouplist[j].channels;
-                    }
-                }
-                // reduce rooms down into groups
-                for(let i = 0; i<rooms.length; i++){
-                    if(grouprooms.includes(rooms[i].name)){
-                        if(rooms[i].users.includes(m[1])){
-                            packet.push(rooms[i].name);
-                        }
-                    }
-                }
-                io.emit('roomlist', JSON.stringify(packet));
             });
             //update to mongo only -----------------------------------
             socket.on('channellist', (m)=>{
@@ -135,8 +115,9 @@ module.exports = {
                 // mongodb 
                 
                 var queryJSON = {users :{$in: [m]}};
-                const db = client.db(dbName);
+               
                 client.connect(function(err){
+                    const db = client.db(dbName);
                     console.log("connection successful to server");
                     console.log("search", queryJSON)
                     var collection = db.collection("groups");
@@ -213,11 +194,12 @@ module.exports = {
             socket.on("UserMKR", (packet)=>{
                 var queryJSON = { "user": packet[0]};
                 var doc = {'user' : packet[0], 'pword' : packet[1], 'powers' : packet[2]};
-                const db = client.db(dbName);
+                
                 //checks for user name
                 client.connect(function(err){
+                    const db = client.db(dbName);
                     var collection = db.collection("users");
-                    collection.findOne(queryJSON).toArray(function(err, result){
+                    collection.find(queryJSON).toArray(function(err, result){
                         if(result.length == 0){
                             collection.insertOne(doc, function(err, result){
                                 socket.emit('Success', "added user");
@@ -271,11 +253,12 @@ module.exports = {
             socket.on("SpawnGroup", (name)=>{
                 let doc = {"name" : name, "users" : ["admin"]};
                 let queryJSON = {"name": name};
-                const db = client.db(dbName);
+                
                 //checks for user name
                 client.connect(function(err){
+                    const db = client.db(dbName);
                     var collection = db.collection("groups");
-                    collection.findOne(queryJSON).toArray(function(err, result){
+                    collection.find(queryJSON).toArray(function(err, result){
                         if(result.length == 0){
                             collection.insertOne(doc, function(err, result){
                                 socket.emit('SpawnGroup', "added group");
@@ -290,11 +273,12 @@ module.exports = {
             socket.on("UserRoomLink", (packet) =>{
                 let queryJSON = {"name": packet[0]};
                 
-                const db = client.db(dbName);
+                
                 //checks for user name
                 client.connect(function(err){
+                    const db = client.db(dbName);
                     var collection = db.collection("rooms");
-                    collection.findOne(queryJSON).toArray(function(err, result){
+                    collection.find(queryJSON).toArray(function(err, result){
                         if(result.length == 0){
                             socket.emit("userRoomLink", 'failed');
                         }else{
@@ -312,11 +296,12 @@ module.exports = {
 
             socket.on("removeUserRoomLink", (packet) =>{
                 let queryJSON = {"name": packet[0], users:{$in:[packet[1]]} };
-                const db = client.db(dbName);
+                
                 //checks for user name
                 client.connect(function(err){
+                    const db = client.db(dbName);
                     var collection = db.collection("rooms");
-                    collection.findOne(queryJSON).toArray(function(err, result){
+                    collection.find(queryJSON).toArray(function(err, result){
                         if(result.length == 0){
                             socket.emit("userRoomLink", 'failed');
                         }else{
@@ -333,11 +318,12 @@ module.exports = {
             socket.on("Spawnchannel", (name)=>{
                 let doc = {"name" : name, "channels" : [], "users" : ["admin"]};
                 let queryJSON = {"name": name};
-                const db = client.db(dbName);
+                
                 //checks for user name
                 client.connect(function(err){
+                    const db = client.db(dbName);
                     var collection = db.collection("rooms");
-                    collection.findOne(queryJSON).toArray(function(err, result){
+                    collection.find(queryJSON).toArray(function(err, result){
                         if(result.length == 0){
                             collection.insertOne(doc, function(err, result){
                                 socket.emit('Spawnchannel', "added channel");
@@ -353,11 +339,12 @@ module.exports = {
             socket.on("UserGroupLink", (packet) =>{
                 let queryJSON = {"name": packet[0]};
                 
-                const db = client.db(dbName);
+                
                 //checks for user name
                 client.connect(function(err){
+                    const db = client.db(dbName);
                     var collection = db.collection("groups");
-                    collection.findOne(queryJSON).toArray(function(err, result){
+                    collection.find(queryJSON).toArray(function(err, result){
                         if(result.length == 0){
                             socket.emit("userRoomLink", 'failed');
                         }else{
@@ -375,11 +362,12 @@ module.exports = {
 
             socket.on("removeUserGroupLink", (packet) =>{
                 let queryJSON = {"name": packet[0], users:{$in:[packet[1]]} };
-                const db = client.db(dbName);
+                
                 //checks for user name
                 client.connect(function(err){
+                    
                     var collection = db.collection("groups");
-                    collection.findOne(queryJSON).toArray(function(err, result){
+                    collection.find(queryJSON).toArray(function(err, result){
                         if(result.length == 0){
                             socket.emit("userRoomLink", 'failed');
                         }else{
