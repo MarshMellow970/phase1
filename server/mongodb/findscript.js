@@ -10,7 +10,7 @@ module.exports = {
                 console.log("search", queryJSON)
                 const db = client.db(dbName);
                 var collection = db.collection(collectionw);
-                collection.find(queryJSON).toArray(function(err, result){
+                collection.insertOne(queryJSON).toArray(function(err, result){
                     //console.log(result);
                     return result; 
                 });

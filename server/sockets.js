@@ -39,12 +39,9 @@ module.exports = {
                 //mongodb
                 var queryJSON = { "user": message[0], "pword": message[1]};
                 client.connect(function(err){
-                    console.log("connection successful to server");
-                    console.log("search", queryJSON)
                     const db = client.db(dbName);
                     var collection = db.collection("users");
                     collection.find(queryJSON).toArray(function(err, result){
-                        console.log("collection", result);
                         if(result.length > 0){
                             io.emit("logindetails", result[0].powers);
                         }else{
@@ -98,6 +95,24 @@ module.exports = {
             socket.on('roomlist',(m)=>{
                 var packet = []; 
                 var grouprooms = [];
+                var queryJSON = {users :{$in: [m]}};
+                const db = client.db(dbName);
+                client.connect(function(err){
+                    console.log("connection successful to server");
+                    console.log("search", queryJSON)
+                    var collection = db.collection("groups");
+                    collection.find(queryJSON).toArray(function(err, result){
+                        var channels = [];
+                        for(var i = 0; i < result.length; i++){
+                            channels.push(result[i].name);
+                        }
+
+
+                        if(result.length > 0){
+                            io.emit("channellist", channels);
+                        }
+                    });
+                });
                 //create room list based on group
                 for(j = 0; j<grouplist.length; j++){
                     if(grouplist[j].name == m[0]){
@@ -118,6 +133,7 @@ module.exports = {
             socket.on('channellist', (m)=>{
 
                 // mongodb 
+                
                 var queryJSON = {users :{$in: [m]}};
                 const db = client.db(dbName);
                 client.connect(function(err){
@@ -125,20 +141,15 @@ module.exports = {
                     console.log("search", queryJSON)
                     var collection = db.collection("groups");
                     collection.find(queryJSON).toArray(function(err, result){
-                        console.log("collection", result);
+                        var channels = [];
+                        for(var i = 0; i < result.length; i++){
+                            channels.push(result[i].name);
+                        }
                         if(result.length > 0){
-                            //io.emit("channellist", result[0].powers);
+                            io.emit("channellist", channels);
                         }
                     });
                 });
-                var channels = [];
-                for(let i = 0; i<grouplist.length; i++){
-                    if(grouplist[i].users.includes(m)){
-                        channels.push(grouplist[i].name);
-                    }
-                    //channels.push(grouplist[i].name);
-                }
-                io.emit('channellist', channels)
             });
 
             // joining a room, checking if the room is real, joining it and then adding count
@@ -200,28 +211,35 @@ module.exports = {
             //----------------------Super Admin -----------------------------
             //update to mongo only -----------------------------------
             socket.on("UserMKR", (packet)=>{
+                var queryJSON = { "user": packet[0]};
                 var doc = {'user' : packet[0], 'pword' : packet[1], 'powers' : packet[2]};
-                try{
-                    users.push({'user' : packet[0], 'pword' : packet[1], 'powers' : packet[2]});
-                }
-                catch{
-                    socket.emit('Success', "Fail");
-                    return; 
-                }
-
-                updater.insertfunc('chathistory', doc, function(){
-                    fs.writeFile('users.json', JSON.stringify(users), 'utf8', callback=>{console.log("user added")}); 
-                    console.log(users);
+                const db = client.db(dbName);
+                //checks for user name
+                client.connect(function(err){
+                    var collection = db.collection("users");
+                    collection.findOne(queryJSON).toArray(function(err, result){
+                        if(result.length == 0){
+                            collection.insertOne(doc, function(err, result){
+                                socket.emit('Success', "added user");
+                            });
+                        }else{
+                            socket.emit('Success', "failed");
+                        }
+                    });
                 });
-            });
+            });               
+                
 
             socket.on("UserSUPERSet", (username)=>{
-                for(let i =0; i<users.length; i++){
-                    if(users[i].user == username){
-                        users[i].powers = "3";
-                    }
-                }
-                console.log(users);
+                var queryJSON = { "user": username};
+                var updateJSON = {"powers": 3};
+                client.connect(function(err){
+                    const db = client.db(dbName);
+                    var collection = db.collection("users");
+                    collection.find(queryJSON, {$set: updateJSON}, function(err, result){
+                        socket.emit("UserSUPERSet", "compeleted")
+                    });
+                });
             });
 
             socket.on("UserAdminSet", (username)=>{
