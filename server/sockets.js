@@ -43,7 +43,7 @@ module.exports = {
                     var collection = db.collection("users");
                     collection.find(queryJSON).toArray(function(err, result){
                         if(result.length > 0){
-                            var packet = [result[0].powers, result[0].photo]
+                            var packet = [result[0].powers, result[0].photo, result[0].user]
                             io.emit("logindetails", packet);
                         }else{
                             io.emit("logindetails", 0);
@@ -94,7 +94,7 @@ module.exports = {
                     if(socketRoom[i][0] == socket.id){
                         console.log("before");
                         console.log(socketRoom[i][1]); 
-                        var doc = {'message' : message[1], 'room' :socketRoom[i][1], 'user': message[0], 'userimage': message[2]};
+                        var doc = {'message' : message[1], 'room' :socketRoom[i][1], 'user': message[0], 'userimage': message[2], "isImage": message[3]};
                         updater.insertfunc("chathistory", doc, function(){
                             io.to(socketRoom[0][1]).emit('message', message);
                             
@@ -236,7 +236,7 @@ module.exports = {
                 client.connect(function(err){
                     const db = client.db(dbName);
                     var collection = db.collection("users");
-                    collection.find(queryJSON, {$set: updateJSON}, function(err, result){
+                    collection.updateOne(queryJSON, {$set: updateJSON}, function(err, result){
                         socket.emit("UserSUPERSet", "compeleted")
                     });
                 });
@@ -248,7 +248,7 @@ module.exports = {
                 client.connect(function(err){
                     const db = client.db(dbName);
                     var collection = db.collection("users");
-                    collection.find(queryJSON, {$set: updateJSON}, function(err, result){
+                    collection.updateOne(queryJSON, {$set: updateJSON}, function(err, result){
                         socket.emit("UserSUPERSet", "compeleted")
                     });
                 });
@@ -423,7 +423,20 @@ module.exports = {
                     });
                 });
             });
-            
+
+            socket.on("userImage", (packet)=>{
+                console.log(packet);
+                var queryJSON = { "user": packet[0]};
+                var updateJSON = {"photo": packet[1]};
+                client.connect(function(err){
+                    const db = client.db(dbName);
+                    var collection = db.collection("users");
+                    collection.updateOne(queryJSON, {$set: updateJSON}, function(err, result){
+                        socket.emit("userImage", "compeleted")
+                    });
+                });
+            });
+
 
         });
 
