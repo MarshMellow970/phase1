@@ -12,6 +12,7 @@
     "bootstrap": "^4.5.2",
     "cors": "^2.8.5",
     "express.js": "^1.0.0",
+    "formidable": "^1.2.2",
     "socket.io": "^2.3.0"
   }
 }

@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
+const path = require('path');
+const formidable = require('formidable');
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const sockets = require('./sockets.js');
@@ -12,6 +14,11 @@ const fetcher = require('./mongodb/viewscripts');
 const PORT = 3000;
 
 app.use(cors());
+
+//image upload part
+app.use(express.static(path.join(__dirname , '../dist/imageupload/')));
+app.use('/images', express.static(path.join(__dirname, './images')));
+require('./routes/uploads.js')(app, formidable);
 
 sockets.connect(io, PORT);
 
