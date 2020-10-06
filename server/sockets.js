@@ -94,7 +94,7 @@ module.exports = {
                     if(socketRoom[i][0] == socket.id){
                         console.log("before");
                         console.log(socketRoom[i][1]); 
-                        var doc = {'message' : message[1], 'room' :socketRoom[i][1], 'user': message[0]};
+                        var doc = {'message' : message[1], 'room' :socketRoom[i][1], 'user': message[0], 'userimage': message[2]};
                         updater.insertfunc("chathistory", doc, function(){
                             io.to(socketRoom[0][1]).emit('message', message);
                             
@@ -268,9 +268,8 @@ module.exports = {
 
 
             //----------------------Group Admin -----------------------------
-            socket.on("SpawnGroup", (name)=>{
-                let doc = {"name" : name, "users" : ["admin"]};
-                let queryJSON = {"name": name};
+            socket.on("Spawnchannel", (name)=>{
+                let queryJSON = {"name": name[0]};
                 
                 //checks for user name
                 client.connect(function(err){
@@ -278,11 +277,33 @@ module.exports = {
                     var collection = db.collection("groups");
                     collection.find(queryJSON).toArray(function(err, result){
                         if(result.length == 0){
+                            return 
+                        }else{
+                            var chanlist = result[0]["channels"]; 
+                            chanlist.push();
+                            var updateJSON = {"channels": chanlist};
+                                const db = client.db(dbName);
+                                var collection = db.collection("groups");
+                                collection.updateOne(queryJSON, {$set: updateJSON}, function(err, result){
+                                });
+                        }
+
+                    });
+                });
+                let doc = {"name" : name[1], "users" : ["admin"]};
+                queryJSON = {"name": name};
+                //checks for user name
+                client.connect(function(err){
+                    const db = client.db(dbName);
+                    var collection = db.collection("rooms");
+                    collection.find(queryJSON).toArray(function(err, result){
+                        if(result.length == 0){
                             collection.insertOne(doc, function(err, result){
-                                socket.emit('SpawnGroup', "added group");
+                                socket.emit('Spawnchannel', "added group");
+
                             });
                         }else{
-                            socket.emit('SpawnGroup', "failed");
+                            socket.emit('Spawnchannel', "failed");
                         }
                     });
                 });
@@ -333,21 +354,21 @@ module.exports = {
             });
 
             //creates a group  
-            socket.on("Spawnchannel", (name)=>{
+            socket.on("SpawnGroup", (name)=>{
                 let doc = {"name" : name, "channels" : [], "users" : ["admin"]};
                 let queryJSON = {"name": name};
                 
                 //checks for user name
                 client.connect(function(err){
                     const db = client.db(dbName);
-                    var collection = db.collection("rooms");
+                    var collection = db.collection("groups");
                     collection.find(queryJSON).toArray(function(err, result){
                         if(result.length == 0){
                             collection.insertOne(doc, function(err, result){
-                                socket.emit('Spawnchannel', "added channel");
+                                socket.emit('SpawnGroup', "added channel");
                             });
                         }else{
-                            socket.emit('Spawnchannel', "failed");
+                            socket.emit('SpawnGroup', "failed");
                         }
                     });
                 });
