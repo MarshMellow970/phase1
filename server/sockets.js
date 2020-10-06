@@ -43,7 +43,8 @@ module.exports = {
                     var collection = db.collection("users");
                     collection.find(queryJSON).toArray(function(err, result){
                         if(result.length > 0){
-                            io.emit("logindetails", result[0].powers);
+                            var packet = [result[0].powers, result[0].photo]
+                            io.emit("logindetails", packet);
                         }else{
                             io.emit("logindetails", 0);
                         }
@@ -65,7 +66,26 @@ module.exports = {
                         chathis.push(chatHistory[j].message);
                     }
                 }
-                io.emit('history', chathis); 
+                var queryJSON1 = {$lookup: {from: "users", localField: "user", foreignField: "user", as: "combo"}}
+                client.connect(function(err){
+                    const db = client.db(dbName);
+                    console.log("connection successful to server");
+                    var collection = db.collection("chathistory");
+                    collection.aggregate(queryJSON1).toArray(function(err, result){
+                        console.log(result);
+                    });
+                });
+
+                var queryJSON = {"room": room};
+                client.connect(function(err){
+                    const db = client.db(dbName);
+                    console.log("connection successful to server");
+                    var collection = db.collection("chathistory");
+                    collection.find(queryJSON).toArray(function(err, result){
+                        io.emit('history', result); 
+                    });
+                });
+                
             });
 
             //update to mongo only -----------------------------------
@@ -73,14 +93,12 @@ module.exports = {
                 for (i = 0; i<socketRoom.length; i++){
                     if(socketRoom[i][0] == socket.id){
                         console.log("before");
-                        console.log(thisChatHistory); 
-                        var doc = {'message' : message, 'room' :socketRoom[i][1]};
+                        console.log(socketRoom[i][1]); 
+                        var doc = {'message' : message[1], 'room' :socketRoom[i][1], 'user': message[0]};
                         updater.insertfunc("chathistory", doc, function(){
-                            thisChatHistory.push(doc); 
-                            fs.writeFile('chatHistory.json', JSON.stringify(thisChatHistory), 'utf8', callback=>{console.log("message added")}); 
+                            io.to(socketRoom[0][1]).emit('message', message);
                             
                         });
-                        io.to(socketRoom[i][1]).emit('message', message);
 
                     }
                 }
