@@ -1,1 +1,16 @@
-[{"message":"admin -- hello world","room":"room2"},{"message":"admin -- hello world","room":"room2"},{"message":"admin -- hello world","room":"room2"},{"message":"admin -- hello world","room":"room2"},{"message":"admin -- hello world","room":"room4"},{"message":"admin -- hello world","room":"room2"},{"message":"admin -- hello world","room":"room2"},{"message":"human -- i missed this message","room":"room2"},{"message":"human -- hi","room":"room2"},{"message":"admin -- hello world","room":"room1"},{"message":"admin -- hello world","room":"room1"},{"message":"admin -- hello world","room":"kids"},{"message":"dog -- message from dog","room":"kids"},{"message":"dog -- oh cool a new room","room":"room3"},{"message":"admin -- you are not meant to be here","room":"room3"},{"message":"admin -- test","room":"room1"},{"message":"admin -- test","room":"room1","_id":"5f76934beb4e3f11dc22ca9c"},{"message":"admin -- test","room":"room1","_id":"5f7693bec686941f7007a221"},{"message":"admin -- hello world","room":"room1","_id":"5f769404cef8c434a47aae63"}]
+[{"message":"admin -- hello world","room":"room2", "user": "admin"},
+    {"message":"admin -- hello world","room":"room2", "user": "admin"},
+    {"message":"admin -- hello world","room":"room2", "user": "admin"},
+    {"message":"admin -- hello world","room":"room2", "user": "admin"},
+    {"message":"admin -- hello world","room":"room4", "user": "admin"},
+    {"message":"admin -- hello world","room":"room2", "user": "admin"},
+    {"message":"admin -- hello world","room":"room2", "user": "admin"},
+    {"message":"human -- i missed this message","room":"room2", "user": "admin"},
+    {"message":"human -- hi","room":"room2", "user": "admin"},
+    {"message":"admin -- hello world","room":"room1", "user": "admin"},
+    {"message":"admin -- hello world","room":"room1", "user": "admin"},
+    {"message":"admin -- hello world","room":"kids", "user": "admin"},
+    {"message":"dog -- message from dog","room":"kids", "user": "admin"},
+    {"message":"dog -- oh cool a new room","room":"room3", "user": "admin"},
+    {"message":"admin -- you are not meant to be here","room":"room3", "user": "admin"},
+    {"message":"admin -- test","room":"room1", "user": "admin"}]
