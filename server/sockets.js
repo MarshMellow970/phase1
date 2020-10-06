@@ -269,44 +269,49 @@ module.exports = {
 
             //----------------------Group Admin -----------------------------
             socket.on("Spawnchannel", (name)=>{
-                let queryJSON = {"name": name[0]};
-                
+                let queryJSON = { name: name[0]};
+                console.log(name[0]);
                 //checks for user name
                 client.connect(function(err){
                     const db = client.db(dbName);
                     var collection = db.collection("groups");
                     collection.find(queryJSON).toArray(function(err, result){
+                        console.log(result);
                         if(result.length == 0){
                             return 
                         }else{
+                            
                             var chanlist = result[0]["channels"]; 
-                            chanlist.push();
+                            chanlist.push(name[1]);
                             var updateJSON = {"channels": chanlist};
                                 const db = client.db(dbName);
                                 var collection = db.collection("groups");
                                 collection.updateOne(queryJSON, {$set: updateJSON}, function(err, result){
+                                    let doc = {"name" : name[1], "users" : ["admin"]};
+                                    queryJSON = {"name": name[1]};
+                                    //checks for user name
+                                    client.connect(function(err){
+                                        const db = client.db(dbName);
+                                        var collection = db.collection("rooms");
+                                        collection.find(queryJSON).toArray(function(err, result){
+                                            if(result.length == 0){
+                                                collection.insertOne(doc, function(err, result){
+                                                    socket.emit('Spawnchannel', "added group");
+
+                                                });
+                                            }else{
+                                                socket.emit('Spawnchannel', "failed");
+                                            }
+                                        });
+                                    });
                                 });
                         }
 
                     });
                 });
-                let doc = {"name" : name[1], "users" : ["admin"]};
-                queryJSON = {"name": name};
-                //checks for user name
-                client.connect(function(err){
-                    const db = client.db(dbName);
-                    var collection = db.collection("rooms");
-                    collection.find(queryJSON).toArray(function(err, result){
-                        if(result.length == 0){
-                            collection.insertOne(doc, function(err, result){
-                                socket.emit('Spawnchannel', "added group");
-
-                            });
-                        }else{
-                            socket.emit('Spawnchannel', "failed");
-                        }
-                    });
-                });
+                
+                
+                
             });
 
             socket.on("UserRoomLink", (packet) =>{
