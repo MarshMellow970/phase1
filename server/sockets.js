@@ -327,7 +327,7 @@ module.exports = {
                         }else{
                             //add user too room 
                             let update = result[0].users;
-                            update.push[packet[1]];
+                            update.push(packet[1]);
                             let updateJSON = {users: update};
                             collection.updateOne(queryJSON, {$set:updateJSON}, function(err, result){
                                 socket.emit("userRoomLink", 'success'); 
@@ -339,7 +339,7 @@ module.exports = {
 
             socket.on("removeUserRoomLink", (packet) =>{
                 let queryJSON = {"name": packet[0], users:{$in:[packet[1]]} };
-                
+                console.log("room link", packet);
                 //checks for user name
                 client.connect(function(err){
                     const db = client.db(dbName);
@@ -382,18 +382,20 @@ module.exports = {
             socket.on("UserGroupLink", (packet) =>{
                 let queryJSON = {"name": packet[0]};
                 
-                
+                console.log("grouplink", packet);
                 //checks for user name
                 client.connect(function(err){
                     const db = client.db(dbName);
                     var collection = db.collection("groups");
                     collection.find(queryJSON).toArray(function(err, result){
                         if(result.length == 0){
+                            console.log("exited");
                             socket.emit("userRoomLink", 'failed');
                         }else{
                             //add user too room 
+                            console.log("adding user");
                             let update = result[0].users;
-                            update.push[packet[1]];
+                            update.push(packet[1]);
                             let updateJSON = {users: update};
                             collection.updateOne(queryJSON, {$set:updateJSON}, function(err, result){
                                 socket.emit("userRoomLink", 'success'); 
