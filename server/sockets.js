@@ -349,9 +349,19 @@ module.exports = {
                             socket.emit("userRoomLink", 'failed');
                         }else{
                             //add user too room 
-                            collection.deleteOne(queryJSON, function(err, result){
-                                socket.emit("userRoomLink", 'success'); 
+                            let update = result[0].users;
+                            var lock = 0
+                            for(let i = 0; i <= result[0].users; i++){
+                                if(result[0].users[i] == packet[1]){
+                                    lock = i;
+                                }
+                            }
+                            update.splice(lock, 1);
+                            let updateJSON = {users: update};
+                            collection.updateOne(queryJSON, {$set:updateJSON}, function(err, result){
+                                socket.emit("removeUserRoomLink", 'success'); 
                             }) 
+                            
                         }
                     });
                 });
@@ -417,9 +427,18 @@ module.exports = {
                             socket.emit("userRoomLink", 'failed');
                         }else{
                             //add user too room 
-                            collection.deleteOne(queryJSON, function(err, result){
-                                socket.emit("userRoomLink", 'success'); 
-                            }) 
+                            let update = result[0].users;
+                            var lock = 0
+                            for(let i = 0; i <= result[0].users; i++){
+                                if(result[0].users[i] == packet[1]){
+                                    lock = i;
+                                }
+                            }
+                            update.splice(lock, 1);
+                            let updateJSON = {users: update};
+                            collection.updateOne(queryJSON, {$set:updateJSON}, function(err, result){
+                                socket.emit("removeUserRoomLink", 'success'); 
+                            })  
                         }
                     });
                 });
