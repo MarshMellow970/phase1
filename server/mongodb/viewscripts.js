@@ -16,7 +16,7 @@ module.exports = {
             var collection = db.collection(colName);
             collection.find({}).toArray(function(err, doc){
                 console.log(doc);
-                fs.writeFile('./chatHistory.json', JSON.stringify(doc), 'utf8', callback=>{roomsfetch()});
+                
             });
             
         });
