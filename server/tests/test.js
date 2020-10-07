@@ -16,15 +16,27 @@ describe('server tests', function(){
             .end((err, res)=>{
                 res.should.have.status(200);
                 done();
-            })
+            });
             
-        })
-    })
+        });
+    });
+    
+    var fd = new FormData();
+    fd.append('image', '.\userimages\default-user.jpg' , "name");
 
     describe('/api/upload', ()=>{
         it('it should insert a photo into the userimage folder', (done) => {
             chai.request(app).post('/api/upload').type('form')
-            .send({})
-        })
-    })
-})
+            .send(fd)
+            .end((err,res)=>{
+                res.should.have.status(200);
+                res.body.should.have.property('result');
+                res.body.should.have.property('data');
+                res.body.should.have.property('numberOfImages');
+                res.body.should.have.property('message');
+                console.log(res.body);
+                done();
+            });
+        });
+    });
+});
