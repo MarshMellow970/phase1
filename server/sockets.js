@@ -276,7 +276,6 @@ module.exports = {
                     const db = client.db(dbName);
                     var collection = db.collection("groups");
                     collection.find(queryJSON).toArray(function(err, result){
-                        console.log(result);
                         if(result.length == 0){
                             return 
                         }else{
